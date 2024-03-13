@@ -1,11 +1,10 @@
-import { OrbitControls, Plane } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
+import Object from "./components/Object";
 
 function App() {
   return (
-    <Canvas orthographic camera={{ zoom: 50, position: [0, 0, 5] }}>
-      <Plane args={[5, 5]} />
-      <OrbitControls />
+    <Canvas orthographic camera={{ zoom: 100, position: [0, 0, 5] }}>
+      <Object />
     </Canvas>
   );
 }

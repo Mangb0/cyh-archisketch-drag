@@ -27,7 +27,11 @@ function Object({ sides, id, startPosition, color }: Props) {
 
   const bind = useGesture({
     onDrag: ({ offset: [x, y] }) => {
-      meshRef.current?.position.set(x / aspect, -y / aspect, 0);
+      meshRef.current?.position.set(
+        startPosition[0] + x / aspect,
+        startPosition[1] - y / aspect,
+        0
+      );
     },
   });
 

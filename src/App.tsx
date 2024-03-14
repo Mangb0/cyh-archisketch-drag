@@ -1,9 +1,11 @@
 import { Canvas } from "@react-three/fiber";
 import Object from "./components/Object";
+import { OrthographicCamera } from "@react-three/drei";
 
 function App() {
   return (
-    <Canvas orthographic camera={{ zoom: 100, position: [0, 0, 5] }}>
+    <Canvas>
+      <OrthographicCamera makeDefault position={[0, 0, 5]} zoom={100} />
       <Object />
     </Canvas>
   );

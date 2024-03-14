@@ -1,11 +1,27 @@
 import { useThree } from "@react-three/fiber";
 import { useRef } from "react";
 import { useGesture } from "react-use-gesture";
-import { Mesh } from "three";
+import * as THREE from "three";
 
-function Object() {
-  const meshRef = useRef<Mesh>(null);
+interface Props {
+  sides: number;
+  id: string;
+  startPosition: [number, number, number];
+  color: string;
+}
+
+function Object({ sides, id, startPosition, color }: Props) {
+  const meshRef = useRef<THREE.Mesh>(null);
+
   const { size, viewport } = useThree();
+
+  const points = [];
+
+  for (let i = 0; i < sides; i++) {
+    const angle = (i / sides) * 2 * Math.PI;
+    points.push(new THREE.Vector2(Math.cos(angle), Math.sin(angle)));
+  }
+  const shape = new THREE.Shape(points);
 
   const aspect = size.width / viewport.width;
 
@@ -14,13 +30,18 @@ function Object() {
       meshRef.current?.position.set(x / aspect, -y / aspect, 0);
     },
   });
+
   return (
-    <>
-      <mesh ref={meshRef} {...bind()}>
-        <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial color="orange" />
-      </mesh>
-    </>
+    <mesh
+      ref={meshRef}
+      name={id}
+      position={startPosition}
+      rotation={[0, 0, -Math.PI / 2 + Math.PI / sides]}
+      {...bind()}
+    >
+      <shapeGeometry args={[shape]} />
+      <meshBasicMaterial color={color} />
+    </mesh>
   );
 }
 

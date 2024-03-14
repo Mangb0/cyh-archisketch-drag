@@ -11,20 +11,24 @@ interface Props {
 }
 
 function Object({ sides, id, startPosition, color }: Props) {
+  // Mesh ref 생성
   const meshRef = useRef<THREE.Mesh>(null);
 
+  // canvas, viewport 크기 정보
   const { size, viewport } = useThree();
 
+  // 다각형 Shape 생성
   const points = [];
-
   for (let i = 0; i < sides; i++) {
     const angle = (i / sides) * 2 * Math.PI;
     points.push(new THREE.Vector2(Math.cos(angle), Math.sin(angle)));
   }
   const shape = new THREE.Shape(points);
 
+  // 화면 비율 계산
   const aspect = size.width / viewport.width;
 
+  // 드래그 이벤트
   const bind = useGesture({
     onDrag: ({ offset: [x, y] }) => {
       meshRef.current?.position.set(

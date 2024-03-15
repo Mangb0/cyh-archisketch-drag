@@ -19,8 +19,8 @@ function Object({ sides, id, startPosition, color }: Props) {
   // 드래그 상태
   const [isDragging, setIsDragging] = useState(false);
 
-  // canvas, viewport 크기 정보
-  const { size, viewport } = useThree();
+  // canvas, viewport 크기 및 scene 정보
+  const { size, viewport, scene } = useThree();
 
   // 다각형 Shape 생성
   const points = [];
@@ -33,6 +33,9 @@ function Object({ sides, id, startPosition, color }: Props) {
   // 화면 비율 계산
   const aspect = size.width / viewport.width;
 
+  // 스냅 기준 거리
+  const snapThreshold = 0.5;
+
   // 드래그 이벤트
   const bind = useGesture({
     onDragStart: () => {
@@ -40,8 +43,31 @@ function Object({ sides, id, startPosition, color }: Props) {
     },
     onDrag: ({ offset: [x, y] }) => {
       if (!cloneMeshRef.current) return;
-      const newX = startPosition[0] + x / aspect;
-      const newY = startPosition[1] + -y / aspect;
+
+      // 드래그 중인 Mesh의 x, y 좌표 계산
+      const xPos = startPosition[0] + x / aspect;
+      const yPos = startPosition[1] + -y / aspect;
+
+      // 가장 가까운 Mesh 정보 변수
+      let closestDistance = Infinity;
+      let closestX = null;
+
+      scene.children.forEach((child) => {
+        if (!(child instanceof THREE.Mesh) || child.name.includes(id)) return;
+        const boundingBox = new THREE.Box3().setFromObject(child);
+
+        // Mesh 중앙 x축 snap
+        const boundingBoxCenter = boundingBox.getCenter(new THREE.Vector3());
+        const distance = Math.abs(boundingBoxCenter.x - xPos);
+        if (distance < closestDistance && distance < snapThreshold) {
+          closestDistance = distance;
+          closestX = boundingBoxCenter.x;
+        }
+      });
+
+      const newX = closestX !== null ? closestX : xPos;
+      const newY = yPos;
+
       cloneMeshRef.current!.position.set(newX, newY, 0);
     },
     onDragEnd: () => {
@@ -59,7 +85,11 @@ function Object({ sides, id, startPosition, color }: Props) {
         <meshBasicMaterial color={color} />
       </mesh>
       {isDragging && (
-        <mesh ref={cloneMeshRef} position={meshRef.current!.position}>
+        <mesh
+          ref={cloneMeshRef}
+          name={id + "Clone"}
+          position={meshRef.current!.position}
+        >
           <shapeGeometry args={[shape]} />
           <meshBasicMaterial wireframe={true} />
         </mesh>

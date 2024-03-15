@@ -49,8 +49,10 @@ function Object({ sides, id, startPosition, color }: Props) {
       const yPos = startPosition[1] + -y / aspect;
 
       // 가장 가까운 Mesh 정보 변수
-      let closestDistance = Infinity;
+      let closestXDistance = Infinity;
       let closestX = null;
+      let closestYDistance = Infinity;
+      let closestY = null;
 
       scene.children.forEach((child) => {
         if (!(child instanceof THREE.Mesh) || child.name.includes(id)) return;
@@ -58,15 +60,20 @@ function Object({ sides, id, startPosition, color }: Props) {
 
         // Mesh 중앙 x축 snap
         const boundingBoxCenter = boundingBox.getCenter(new THREE.Vector3());
-        const distance = Math.abs(boundingBoxCenter.x - xPos);
-        if (distance < closestDistance && distance < snapThreshold) {
-          closestDistance = distance;
+        const distanceX = Math.abs(boundingBoxCenter.x - xPos);
+        const distanceY = Math.abs(boundingBoxCenter.y - yPos);
+        if (distanceX < closestXDistance && distanceX < snapThreshold) {
+          closestXDistance = distanceX;
           closestX = boundingBoxCenter.x;
+        }
+        if (distanceY < closestYDistance && distanceY < snapThreshold) {
+          closestYDistance = distanceY;
+          closestY = boundingBoxCenter.y;
         }
       });
 
       const newX = closestX !== null ? closestX : xPos;
-      const newY = yPos;
+      const newY = closestY !== null ? closestY : yPos;
 
       cloneMeshRef.current!.position.set(newX, newY, 0);
     },

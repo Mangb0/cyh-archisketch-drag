@@ -13,9 +13,11 @@ interface Props {
 function Object({ sides, id, startPosition, color }: Props) {
   // Mesh ref 생성
   const meshRef = useRef<THREE.Mesh>(null);
+  // clone Mesh ref 생성
+  const cloneMeshRef = useRef<THREE.Mesh>(null);
 
-  // 드래그 이동 Mesh 위치
-  const [position, setPosition] = useState<THREE.Vector3 | null>(null);
+  // 드래그 상태
+  const [isDragging, setIsDragging] = useState(false);
 
   // canvas, viewport 크기 정보
   const { size, viewport } = useThree();
@@ -34,44 +36,35 @@ function Object({ sides, id, startPosition, color }: Props) {
   // 드래그 이벤트
   const bind = useGesture({
     onDragStart: () => {
-      if (meshRef.current) {
-        setPosition(meshRef.current.position);
-      }
+      setIsDragging(true);
     },
     onDrag: ({ offset: [x, y] }) => {
+      if (!cloneMeshRef.current) return;
       const newX = startPosition[0] + x / aspect;
       const newY = startPosition[1] + -y / aspect;
-      setPosition(new THREE.Vector3(newX, newY, 0));
+      cloneMeshRef.current!.position.set(newX, newY, 0);
     },
     onDragEnd: () => {
-      if (meshRef.current && position) {
-        meshRef.current.position.copy(position);
-        setPosition(null);
+      if (meshRef.current && cloneMeshRef.current) {
+        meshRef.current.position.copy(cloneMeshRef.current.position);
+        setIsDragging(false);
       }
     },
   });
 
   return (
     <>
-      <mesh
-        ref={meshRef}
-        name={id}
-        position={startPosition}
-        rotation={[0, 0, -Math.PI / 2 + Math.PI / sides]}
-        {...bind()}
-      >
+      <mesh ref={meshRef} name={id} position={startPosition}>
         <shapeGeometry args={[shape]} />
         <meshBasicMaterial color={color} />
       </mesh>
-      {position && (
-        <mesh
-          position={position}
-          rotation={[0, 0, -Math.PI / 2 + Math.PI / sides]}
-        >
+      {isDragging && (
+        <mesh ref={cloneMeshRef} position={meshRef.current!.position}>
           <shapeGeometry args={[shape]} />
           <meshBasicMaterial wireframe={true} />
         </mesh>
       )}
+      <primitive object={meshRef.current ?? {}} {...bind()} />
     </>
   );
 }

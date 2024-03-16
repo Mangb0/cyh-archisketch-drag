@@ -54,21 +54,69 @@ function Object({ sides, id, startPosition, color }: Props) {
       let closestYDistance = Infinity;
       let closestY = null;
 
+      const movingBox = new THREE.Box3().setFromObject(cloneMeshRef.current!);
+      const boxSize = movingBox.getSize(new THREE.Vector3());
+
       scene.children.forEach((child) => {
         if (!(child instanceof THREE.Mesh) || child.name.includes(id)) return;
-        const boundingBox = new THREE.Box3().setFromObject(child);
+        const targetBox = new THREE.Box3().setFromObject(child);
 
-        // Mesh 중앙 x축 snap
-        const boundingBoxCenter = boundingBox.getCenter(new THREE.Vector3());
-        const distanceX = Math.abs(boundingBoxCenter.x - xPos);
-        const distanceY = Math.abs(boundingBoxCenter.y - yPos);
+        // Mesh 중앙 snap
+        const targetBoxCenter = targetBox.getCenter(new THREE.Vector3());
+        const distanceX = Math.abs(targetBoxCenter.x - xPos);
+        const distanceY = Math.abs(targetBoxCenter.y - yPos);
         if (distanceX < closestXDistance && distanceX < snapThreshold) {
           closestXDistance = distanceX;
-          closestX = boundingBoxCenter.x;
+          closestX = targetBoxCenter.x;
         }
         if (distanceY < closestYDistance && distanceY < snapThreshold) {
           closestYDistance = distanceY;
-          closestY = boundingBoxCenter.y;
+          closestY = targetBoxCenter.y;
+        }
+
+        // boundingBox 외곽라인 snap
+        const distanceEdgeMinX = Math.abs(
+          targetBox.min.x - (xPos + boxSize.x / 2)
+        );
+        if (
+          distanceEdgeMinX < closestXDistance &&
+          distanceEdgeMinX < snapThreshold
+        ) {
+          closestXDistance = distanceEdgeMinX;
+          closestX = targetBox.min.x - boxSize.x / 2;
+        }
+
+        const distanceEdgeMaxX = Math.abs(
+          targetBox.max.x - (xPos - boxSize.x / 2)
+        );
+        if (
+          distanceEdgeMaxX < closestXDistance &&
+          distanceEdgeMaxX < snapThreshold
+        ) {
+          closestXDistance = distanceEdgeMaxX;
+          closestX = targetBox.max.x + boxSize.x / 2;
+        }
+
+        const distanceEdgeMinY = Math.abs(
+          targetBox.min.y - (yPos + boxSize.y / 2)
+        );
+        if (
+          distanceEdgeMinY < closestYDistance &&
+          distanceEdgeMinY < snapThreshold
+        ) {
+          closestXDistance = distanceEdgeMinY;
+          closestY = targetBox.min.y - boxSize.y / 2;
+        }
+
+        const distanceEdgeMaxY = Math.abs(
+          targetBox.max.y - (yPos - boxSize.y / 2)
+        );
+        if (
+          distanceEdgeMaxY < closestYDistance &&
+          distanceEdgeMaxY < snapThreshold
+        ) {
+          closestYDistance = distanceEdgeMaxY;
+          closestY = targetBox.max.y + boxSize.y / 2;
         }
       });
 

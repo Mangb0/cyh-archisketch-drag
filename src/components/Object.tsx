@@ -1,5 +1,5 @@
 import { useThree } from "@react-three/fiber";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useGesture } from "react-use-gesture";
 import * as THREE from "three";
 import { snapToCenter, snapToEdge, snapToOutline } from "../utils/snapUtils";
@@ -29,6 +29,12 @@ function Object({ sides, radius, id, startPosition }: Props) {
   // 스냅 기준 거리
   const snapThreshold = 0.5;
 
+  // Mesh geometry 조정
+  useEffect(() => {
+    if (!meshRef.current?.isMesh) return;
+    meshRef.current?.geometry.center();
+  }, [meshRef.current?.isMesh]);
+
   // 드래그 이벤트
   const bind = useGesture({
     onDragStart: (event) => {
@@ -44,7 +50,7 @@ function Object({ sides, radius, id, startPosition }: Props) {
       const yPos = startPosition[1] + -y / aspect;
       const currentPos = { x: xPos, y: yPos };
 
-      // 가장 가까운 Mesh 정보 변수
+      // 가장 가까운 snap 좌표 및 거리
       let closestXDistance = Infinity;
       let closestX = xPos;
       let closestYDistance = Infinity;
@@ -130,8 +136,9 @@ function Object({ sides, radius, id, startPosition }: Props) {
           ref={cloneMeshRef}
           name={`${id}Clone`}
           position={meshRef.current!.position}
+          geometry={meshRef.current?.geometry}
         >
-          <circleGeometry args={[radius, sides]} />
+          {/* <circleGeometry args={[radius, sides]} /> */}
           <meshBasicMaterial wireframe={true} />
         </mesh>
       )}

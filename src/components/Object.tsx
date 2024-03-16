@@ -6,12 +6,12 @@ import { snapToCenter, snapToEdge, snapToOutline } from "../utils/snapUtils";
 
 interface Props {
   sides: number;
+  radius: number;
   id: string;
-  startPosition: [number, number, number];
-  color: string;
+  startPosition: [number, number];
 }
 
-function Object({ sides, id, startPosition, color }: Props) {
+function Object({ sides, radius, id, startPosition }: Props) {
   // Mesh ref 생성
   const meshRef = useRef<THREE.Mesh>(null);
   // clone Mesh ref 생성
@@ -22,14 +22,6 @@ function Object({ sides, id, startPosition, color }: Props) {
 
   // canvas, viewport 크기 및 scene 정보
   const { size, viewport, scene } = useThree();
-
-  // 다각형 Shape 생성
-  const points = [];
-  for (let i = 0; i < sides; i++) {
-    const angle = (i / sides) * 2 * Math.PI;
-    points.push(new THREE.Vector2(Math.cos(angle), Math.sin(angle)));
-  }
-  const shape = new THREE.Shape(points);
 
   // 화면 비율 계산
   const aspect = size.width / viewport.width;
@@ -127,17 +119,17 @@ function Object({ sides, id, startPosition, color }: Props) {
 
   return (
     <>
-      <mesh ref={meshRef} name={id} position={startPosition}>
-        <shapeGeometry args={[shape]} />
-        <meshBasicMaterial color={color} />
+      <mesh ref={meshRef} name={id} position={[...startPosition, 0]}>
+        <circleGeometry args={[radius, sides]} />
+        <meshBasicMaterial color="#ffffff" />
       </mesh>
       {isDragging && (
         <mesh
           ref={cloneMeshRef}
-          name={id + "Clone"}
+          name={`${id}Clone`}
           position={meshRef.current!.position}
         >
-          <shapeGeometry args={[shape]} />
+          <circleGeometry args={[radius, sides]} />
           <meshBasicMaterial wireframe={true} />
         </mesh>
       )}

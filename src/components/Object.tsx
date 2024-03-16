@@ -2,7 +2,7 @@ import { useThree } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import { useGesture } from "react-use-gesture";
 import * as THREE from "three";
-import { snapToCenter, snapToOutline } from "../utils/snapUtils";
+import { snapToCenter, snapToEdge, snapToOutline } from "../utils/snapUtils";
 
 interface Props {
   sides: number;
@@ -91,6 +91,24 @@ function Object({ sides, id, startPosition, color }: Props) {
         if (outline.y !== null && outline.distance.y < closestYDistance) {
           closestYDistance = outline.distance.y;
           closestY = outline.y;
+        }
+
+        // boundingBox 모서리 snap
+        const edge = snapToEdge(
+          currentBox,
+          targetBox,
+          snapThreshold,
+          currentPos
+        );
+
+        if (edge.x !== null && edge.distance.x < closestXDistance) {
+          closestXDistance = edge.distance.x;
+          closestX = edge.x;
+        }
+
+        if (edge.y !== null && edge.distance.y < closestYDistance) {
+          closestYDistance = edge.distance.y;
+          closestY = edge.y;
         }
       });
 

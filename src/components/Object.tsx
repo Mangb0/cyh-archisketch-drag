@@ -26,8 +26,8 @@ function Object({ sides, radius, id, startPosition }: Props) {
   // 화면 비율 계산
   const aspect = size.width / viewport.width;
 
-  // 스냅 기준 거리
-  const snapThreshold = 0.5;
+  // snap 적용 거리
+  const snapThreshold = 0.2;
 
   // Mesh geometry 조정
   useEffect(() => {

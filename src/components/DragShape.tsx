@@ -11,7 +11,7 @@ interface Props {
   startPosition: [number, number];
 }
 
-function Object({ sides, radius, id, startPosition }: Props) {
+function DragShape({ sides, radius, id, startPosition }: Props) {
   // Mesh ref 생성
   const meshRef = useRef<THREE.Mesh>(null);
   // clone Mesh ref 생성
@@ -31,7 +31,6 @@ function Object({ sides, radius, id, startPosition }: Props) {
 
   // Mesh geometry 조정
   useEffect(() => {
-    if (!meshRef.current?.isMesh) return;
     meshRef.current?.geometry.center();
   }, [meshRef.current?.isMesh]);
 
@@ -43,8 +42,6 @@ function Object({ sides, radius, id, startPosition }: Props) {
       setIsDragging(true);
     },
     onDrag: ({ offset: [x, y] }) => {
-      if (!cloneMeshRef.current) return;
-
       // 드래그 중인 Mesh의 x, y 좌표 계산
       const xPos = startPosition[0] + x / aspect;
       const yPos = startPosition[1] + -y / aspect;
@@ -147,4 +144,4 @@ function Object({ sides, radius, id, startPosition }: Props) {
   );
 }
 
-export default Object;
+export default DragShape;

@@ -2,6 +2,7 @@ import { useThree } from "@react-three/fiber";
 import { useRef, useState } from "react";
 import { useGesture } from "react-use-gesture";
 import * as THREE from "three";
+import { snapToCenter, snapToOutline } from "../utils/snapUtils";
 
 interface Props {
   sides: number;
@@ -47,81 +48,54 @@ function Object({ sides, id, startPosition, color }: Props) {
       // 드래그 중인 Mesh의 x, y 좌표 계산
       const xPos = startPosition[0] + x / aspect;
       const yPos = startPosition[1] + -y / aspect;
+      const currentPos = { x: xPos, y: yPos };
 
       // 가장 가까운 Mesh 정보 변수
       let closestXDistance = Infinity;
-      let closestX = null;
+      let closestX = xPos;
       let closestYDistance = Infinity;
-      let closestY = null;
+      let closestY = yPos;
 
-      const movingBox = new THREE.Box3().setFromObject(cloneMeshRef.current!);
-      const boxSize = movingBox.getSize(new THREE.Vector3());
+      const currentBox = new THREE.Box3().setFromObject(cloneMeshRef.current!);
 
       scene.children.forEach((child) => {
         if (!(child instanceof THREE.Mesh) || child.name.includes(id)) return;
         const targetBox = new THREE.Box3().setFromObject(child);
 
-        // Mesh 중앙 snap
-        const targetBoxCenter = targetBox.getCenter(new THREE.Vector3());
-        const distanceX = Math.abs(targetBoxCenter.x - xPos);
-        const distanceY = Math.abs(targetBoxCenter.y - yPos);
-        if (distanceX < closestXDistance && distanceX < snapThreshold) {
-          closestXDistance = distanceX;
-          closestX = targetBoxCenter.x;
+        // boundingBox 중앙 snap
+        const center = snapToCenter(targetBox, snapThreshold, currentPos);
+
+        if (center.x !== null && center.distance.x < closestXDistance) {
+          closestXDistance = center.distance.x;
+          closestX = center.x;
         }
-        if (distanceY < closestYDistance && distanceY < snapThreshold) {
-          closestYDistance = distanceY;
-          closestY = targetBoxCenter.y;
+
+        if (center.y !== null && center.distance.y < closestYDistance) {
+          closestYDistance = center.distance.y;
+          closestY = center.y;
         }
 
         // boundingBox 외곽라인 snap
-        const distanceEdgeMinX = Math.abs(
-          targetBox.min.x - (xPos + boxSize.x / 2)
+        const outline = snapToOutline(
+          currentBox,
+          targetBox,
+          snapThreshold,
+          currentPos
         );
-        if (
-          distanceEdgeMinX < closestXDistance &&
-          distanceEdgeMinX < snapThreshold
-        ) {
-          closestXDistance = distanceEdgeMinX;
-          closestX = targetBox.min.x - boxSize.x / 2;
+
+        if (outline.x !== null && outline.distance.x < closestXDistance) {
+          closestXDistance = outline.distance.x;
+          closestX = outline.x;
         }
 
-        const distanceEdgeMaxX = Math.abs(
-          targetBox.max.x - (xPos - boxSize.x / 2)
-        );
-        if (
-          distanceEdgeMaxX < closestXDistance &&
-          distanceEdgeMaxX < snapThreshold
-        ) {
-          closestXDistance = distanceEdgeMaxX;
-          closestX = targetBox.max.x + boxSize.x / 2;
-        }
-
-        const distanceEdgeMinY = Math.abs(
-          targetBox.min.y - (yPos + boxSize.y / 2)
-        );
-        if (
-          distanceEdgeMinY < closestYDistance &&
-          distanceEdgeMinY < snapThreshold
-        ) {
-          closestXDistance = distanceEdgeMinY;
-          closestY = targetBox.min.y - boxSize.y / 2;
-        }
-
-        const distanceEdgeMaxY = Math.abs(
-          targetBox.max.y - (yPos - boxSize.y / 2)
-        );
-        if (
-          distanceEdgeMaxY < closestYDistance &&
-          distanceEdgeMaxY < snapThreshold
-        ) {
-          closestYDistance = distanceEdgeMaxY;
-          closestY = targetBox.max.y + boxSize.y / 2;
+        if (outline.y !== null && outline.distance.y < closestYDistance) {
+          closestYDistance = outline.distance.y;
+          closestY = outline.y;
         }
       });
 
-      const newX = closestX !== null ? closestX : xPos;
-      const newY = closestY !== null ? closestY : yPos;
+      const newX = closestX;
+      const newY = closestY;
 
       cloneMeshRef.current!.position.set(newX, newY, 0);
     },

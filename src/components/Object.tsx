@@ -31,7 +31,9 @@ function Object({ sides, radius, id, startPosition }: Props) {
 
   // 드래그 이벤트
   const bind = useGesture({
-    onDragStart: () => {
+    onDragStart: (event) => {
+      // 다중 Mesh 선택 방지
+      event.event.stopPropagation();
       setIsDragging(true);
     },
     onDrag: ({ offset: [x, y] }) => {
